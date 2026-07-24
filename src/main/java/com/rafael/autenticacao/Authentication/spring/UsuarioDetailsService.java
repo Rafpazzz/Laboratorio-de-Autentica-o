@@ -1,0 +1,27 @@
+package com.rafael.autenticacao.Authentication.spring;
+
+import com.rafael.autenticacao.Usuario.Domain.Entidade;
+import com.rafael.autenticacao.Usuario.Repository.UsuarioRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UsuarioDetailsService implements UserDetailsService {
+
+    private final UsuarioRepository usuarioRepository;
+
+    public UsuarioDetailsService(UsuarioRepository usuarioRepository) {
+        this.usuarioRepository = usuarioRepository;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Entidade user = usuarioRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado"));
+
+        UsuarioDetails usuarioDetails = new UsuarioDetails(user);
+
+        return usuarioDetails;
+    }
+}
