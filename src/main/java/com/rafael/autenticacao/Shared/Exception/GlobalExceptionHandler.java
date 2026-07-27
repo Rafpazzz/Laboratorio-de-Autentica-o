@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import org.springframework.security.core.AuthenticationException;
 import java.net.URI;
 import java.util.Map;
 
@@ -109,6 +110,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno nao mapeado", request);
     }
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ProblemDetail> handlerInvalidFields(AuthenticationException exception, HttpServletRequest servletRequest) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciais invalidas", servletRequest);
+    }
+
     private ResponseEntity<ProblemDetail> buildResponse(
             HttpStatus status,
             String message,
@@ -130,4 +136,6 @@ public class GlobalExceptionHandler {
 
         return problem;
     }
+
+
 }
