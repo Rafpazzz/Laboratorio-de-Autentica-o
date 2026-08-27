@@ -1,5 +1,6 @@
 package com.rafael.autenticacao.Shared.Exception;
 
+import com.rafael.autenticacao.Authentication.jwt.refresh.exception.InvalidRefreshTokenException;
 import com.rafael.autenticacao.Usuario.Exceptions.ExistEmailException;
 import com.rafael.autenticacao.Usuario.Exceptions.InvalidUserDataException;
 import com.rafael.autenticacao.Usuario.Exceptions.UsuarioNotFoundException;
@@ -99,6 +100,14 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return buildResponse(HttpStatus.BAD_REQUEST, "Requisicao invalida", request);
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidRefreshToken(
+            InvalidRefreshTokenException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, exception.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)

@@ -1,4 +1,4 @@
-package com.rafael.autenticacao.Authentication.session.DTO;
+package com.rafael.autenticacao.Authentication.shared.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

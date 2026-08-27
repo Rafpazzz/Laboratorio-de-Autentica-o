@@ -1,7 +1,7 @@
 package com.rafael.autenticacao.Authentication.session.controller;
 
-import com.rafael.autenticacao.Authentication.session.DTO.LoginRequestDTO;
-import com.rafael.autenticacao.Authentication.session.DTO.RegisterRequestDTO;
+import com.rafael.autenticacao.Authentication.shared.dto.LoginRequestDTO;
+import com.rafael.autenticacao.Authentication.shared.dto.RegisterRequestDTO;
 import com.rafael.autenticacao.Shared.Exception.GlobalExceptionHandler;
 import com.rafael.autenticacao.Usuario.Domain.Entidade;
 import com.rafael.autenticacao.Usuario.Domain.Role;

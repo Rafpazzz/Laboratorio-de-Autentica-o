@@ -7,8 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
@@ -29,7 +27,7 @@ public class SecurityConfigBySession {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain securityFilterChain(
+    public SecurityFilterChain sessionSecurityFilterChain(
             HttpSecurity httpSecurity,
             SessionAuthenticationEntryPoint sessionAuthenticationEntryPoint,
             SessionAccessDeniedHandler sessionAccessDeniedHandler,
@@ -46,7 +44,7 @@ public class SecurityConfigBySession {
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 )
                 .securityContext(securityContext -> securityContext
-                        .securityContextRepository(securityContextRepository())
+                        .securityContextRepository(sessionSecurityContextRepository())
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(sessionAuthenticationEntryPoint)
@@ -65,12 +63,7 @@ public class SecurityConfigBySession {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public SecurityContextRepository securityContextRepository() {
+    public SecurityContextRepository sessionSecurityContextRepository() {
         return new HttpSessionSecurityContextRepository();
     }
 
@@ -79,9 +72,13 @@ public class SecurityConfigBySession {
         return CookieCsrfTokenRepository.withHttpOnlyFalse();
     }
 
-    //troca o token csrf apos sucesso no login
     @Bean
-    public SessionAuthenticationStrategy sessionAuthenticationStrategy(@Qualifier("sessionCsrfTokenRepository") CsrfTokenRepository csrfTokenRepository) {
-        return new CompositeSessionAuthenticationStrategy(List.of(new ChangeSessionIdAuthenticationStrategy(), new CsrfAuthenticationStrategy(csrfTokenRepository)));
+    public SessionAuthenticationStrategy sessionAuthenticationStrategy(
+            @Qualifier("sessionCsrfTokenRepository") CsrfTokenRepository csrfTokenRepository
+    ) {
+        return new CompositeSessionAuthenticationStrategy(List.of(
+                new ChangeSessionIdAuthenticationStrategy(),
+                new CsrfAuthenticationStrategy(csrfTokenRepository)
+        ));
     }
 }

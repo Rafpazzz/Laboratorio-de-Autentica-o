@@ -1,4 +1,4 @@
-package com.rafael.autenticacao.Authentication.spring;
+package com.rafael.autenticacao.Authentication.shared.userdetails;
 
 import com.rafael.autenticacao.Usuario.Domain.Entidade;
 import com.rafael.autenticacao.Usuario.Repository.UsuarioRepository;

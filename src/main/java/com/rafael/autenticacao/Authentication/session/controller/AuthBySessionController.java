@@ -1,7 +1,7 @@
 package com.rafael.autenticacao.Authentication.session.controller;
 
-import com.rafael.autenticacao.Authentication.session.DTO.LoginRequestDTO;
-import com.rafael.autenticacao.Authentication.session.DTO.RegisterRequestDTO;
+import com.rafael.autenticacao.Authentication.shared.dto.LoginRequestDTO;
+import com.rafael.autenticacao.Authentication.shared.dto.RegisterRequestDTO;
 import com.rafael.autenticacao.Usuario.Domain.Entidade;
 import com.rafael.autenticacao.Usuario.Domain.Role;
 import com.rafael.autenticacao.Usuario.Service.UsuarioService;
@@ -32,16 +32,18 @@ public class AuthBySessionController {
 
     public AuthBySessionController(
             AuthenticationManager authenticationManager,
+            @Qualifier("sessionSecurityContextRepository")
             SecurityContextRepository securityContextRepository,
             UsuarioService usuarioService,
-            SessionAuthenticationStrategy  sessionAuthenticationStrategy,
+            @Qualifier("sessionAuthenticationStrategy")
+            SessionAuthenticationStrategy sessionAuthenticationStrategy,
             @Qualifier("sessionCsrfTokenRepository")
             CsrfTokenRepository csrfTokenRepository
     ) {
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
         this.usuarioService = usuarioService;
-        this.sessionAuthenticationStrategy  = sessionAuthenticationStrategy;
+        this.sessionAuthenticationStrategy = sessionAuthenticationStrategy;
         this.csrfTokenRepository = csrfTokenRepository;
     }
 

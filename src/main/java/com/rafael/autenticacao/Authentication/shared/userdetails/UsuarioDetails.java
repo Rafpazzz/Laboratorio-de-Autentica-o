@@ -1,4 +1,4 @@
-package com.rafael.autenticacao.Authentication.spring;
+package com.rafael.autenticacao.Authentication.shared.userdetails;
 
 import com.rafael.autenticacao.Usuario.Domain.Entidade;
 import org.jspecify.annotations.Nullable;
@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 public class UsuarioDetails implements UserDetails {
 
@@ -16,6 +17,10 @@ public class UsuarioDetails implements UserDetails {
 
     public UsuarioDetails(Entidade entidade) {
         this.entidade = entidade;
+    }
+
+    public UUID getId() {
+        return entidade.getId();
     }
 
     @Override
