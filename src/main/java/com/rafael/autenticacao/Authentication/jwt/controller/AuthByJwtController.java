@@ -1,6 +1,7 @@
 package com.rafael.autenticacao.Authentication.jwt.controller;
 
 import com.rafael.autenticacao.Authentication.jwt.dto.JwtLoginResponseDTO;
+import com.rafael.autenticacao.Authentication.jwt.dto.JwtUserResponseDTO;
 import com.rafael.autenticacao.Authentication.jwt.refresh.cookie.JwtRefreshTokenCookieFactory;
 import com.rafael.autenticacao.Authentication.jwt.refresh.service.JwtRefreshTokenService;
 import com.rafael.autenticacao.Authentication.jwt.service.JwtTokenService;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -21,6 +23,7 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.util.List;
 
 @RestController
 @RequestMapping("/auth/jwt")
@@ -84,14 +87,28 @@ public class AuthByJwtController {
         return tokenResponse(accessToken, refreshCookie);
     }
 
-    @GetMapping("/admin")
-    public ResponseEntity<String> adminResource() {
-        return ResponseEntity.ok("Acesso administrativo autorizado");
-    }
+    @GetMapping("/sobre")
+    public ResponseEntity<JwtUserResponseDTO> authenticationDetails(
+            JwtAuthenticationToken authentication
+    ) {
+        Jwt jwt = authentication.getToken();
+        String email = jwt.getClaimAsString("email");
+        List<String> authorities = authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(authority -> authority.startsWith("ROLE_"))
+                .sorted()
+                .toList();
 
-    @GetMapping("/me")
-    public ResponseEntity<String> authenticatedUser(JwtAuthenticationToken authentication) {
-        return ResponseEntity.ok(authentication.getName());
+        var response = new JwtUserResponseDTO(
+                jwt.getSubject(),
+                email,
+                jwt.getClaimAsString("name"),
+                email,
+                authorities
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/csrf")

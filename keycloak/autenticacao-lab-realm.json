@@ -1,0 +1,190 @@
+{
+  "realm": "autenticacao-lab",
+  "displayName": "Autenticacao Lab",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "USER",
+        "description": "Application USER role"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Application ADMIN role"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "autenticacao-lab-client",
+      "name": "Autenticacao Lab OIDC",
+      "description": "OAuth 2.0 and OpenID Connect client for the authentication lab",
+      "rootUrl": "http://localhost:8080",
+      "adminUrl": "http://localhost:8080",
+      "baseUrl": "http://localhost:5173/oauth2/sobre",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${OAUTH2_CLIENT_SECRET}",
+      "redirectUris": [
+        "http://localhost:8080/auth/oauth2/callback/keycloak"
+      ],
+      "webOrigins": [],
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "backchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "http://localhost:8080/auth/oauth2/logged-out"
+      },
+      "fullScopeAllowed": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "basic",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "organization",
+        "microprofile-jwt"
+      ]
+    },
+    {
+      "clientId": "autenticacao-lab-saml",
+      "name": "Autenticacao Lab SAML",
+      "description": "SAML Service Provider for the authentication lab",
+      "rootUrl": "http://localhost:8080",
+      "adminUrl": "http://localhost:8080/login/saml2/sso/keycloak-saml",
+      "baseUrl": "http://localhost:5173/saml/sobre",
+      "enabled": true,
+      "redirectUris": [
+        "http://localhost:8080/login/saml2/sso/keycloak-saml"
+      ],
+      "webOrigins": [
+        "http://localhost:8080"
+      ],
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": true,
+      "protocol": "saml",
+      "attributes": {
+        "saml.assertion.signature": "true",
+        "saml.force.post.binding": "true",
+        "saml_single_logout_service_url_post": "http://localhost:8080/logout/saml2/slo",
+        "saml.encrypt": "false",
+        "saml_assertion_consumer_url_post": "http://localhost:8080/login/saml2/sso/keycloak-saml",
+        "saml.server.signature": "true",
+        "saml.server.signature.keyinfo.ext": "false",
+        "saml.signing.certificate": "${SAML_SP_CERTIFICATE_VALUE}",
+        "saml.signature.algorithm": "RSA_SHA256",
+        "saml_force_name_id_format": "true",
+        "saml.client.signature": "true",
+        "saml.authnstatement": "true",
+        "saml_name_id_format": "username",
+        "saml.allow.ecp.flow": "false",
+        "saml.onetimeuse.condition": "false",
+        "saml_signature_canonicalization_method": "http://www.w3.org/2001/10/xml-exc-c14n#"
+      },
+      "fullScopeAllowed": true,
+      "protocolMappers": [
+        {
+          "name": "email",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "email",
+            "attribute.nameformat": "Basic",
+            "friendly.name": "email",
+            "attribute.name": "email"
+          }
+        },
+        {
+          "name": "username",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "username",
+            "attribute.nameformat": "Basic",
+            "friendly.name": "username",
+            "attribute.name": "username"
+          }
+        },
+        {
+          "name": "lastName",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "lastName",
+            "attribute.nameformat": "Basic",
+            "friendly.name": "lastName",
+            "attribute.name": "lastName"
+          }
+        },
+        {
+          "name": "firstName",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "firstName",
+            "attribute.nameformat": "Basic",
+            "friendly.name": "firstName",
+            "attribute.name": "firstName"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "saml_organization",
+        "role_list",
+        "AuthnContextClassRef"
+      ],
+      "optionalClientScopes": []
+    }
+  ],
+  "users": [
+    {
+      "username": "${KEYCLOAK_TEST_USERNAME}",
+      "firstName": "${KEYCLOAK_TEST_FIRST_NAME}",
+      "lastName": "${KEYCLOAK_TEST_LAST_NAME}",
+      "email": "${KEYCLOAK_TEST_EMAIL}",
+      "emailVerified": true,
+      "enabled": true,
+      "realmRoles": [
+        "USER"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_TEST_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

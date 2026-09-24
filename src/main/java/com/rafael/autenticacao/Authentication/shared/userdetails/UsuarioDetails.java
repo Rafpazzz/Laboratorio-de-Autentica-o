@@ -23,6 +23,14 @@ public class UsuarioDetails implements UserDetails {
         return entidade.getId();
     }
 
+    public String getName() {
+        return entidade.getName();
+    }
+
+    public String getEmail() {
+        return entidade.getEmail();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         String authority ="ROLE_" + entidade.getRole().name();

@@ -1,0 +1,23 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.4
+    entrypoint: ["/bin/sh", "/opt/keycloak/bootstrap/start-keycloak.sh"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      OAUTH2_CLIENT_SECRET: ${OAUTH2_CLIENT_SECRET}
+      KEYCLOAK_TEST_USERNAME: ${KEYCLOAK_TEST_USERNAME:-rafael}
+      KEYCLOAK_TEST_PASSWORD: ${KEYCLOAK_TEST_PASSWORD:-troque-esta-senha}
+      KEYCLOAK_TEST_EMAIL: ${KEYCLOAK_TEST_EMAIL:-rafael@email.com}
+      KEYCLOAK_TEST_FIRST_NAME: ${KEYCLOAK_TEST_FIRST_NAME:-Rafael}
+      KEYCLOAK_TEST_LAST_NAME: ${KEYCLOAK_TEST_LAST_NAME:-Paz}
+    ports:
+      - "127.0.0.1:8180:8080"
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./keycloak/autenticacao-lab-realm.json:/opt/keycloak/data/import/autenticacao-lab-realm.json:ro
+      - ./keycloak/start-keycloak.sh:/opt/keycloak/bootstrap/start-keycloak.sh:ro
+      - ./.local/saml/sp-certificate.crt:/opt/keycloak/bootstrap/sp-certificate.crt:ro
+
+volumes:
+  keycloak-data:

@@ -2,6 +2,8 @@ package com.rafael.autenticacao.Authentication.session.controller;
 
 import com.rafael.autenticacao.Authentication.shared.dto.LoginRequestDTO;
 import com.rafael.autenticacao.Authentication.shared.dto.RegisterRequestDTO;
+import com.rafael.autenticacao.Authentication.shared.userdetails.UsuarioDetails;
+import com.rafael.autenticacao.Authentication.session.dto.SessionUserResponseDTO;
 import com.rafael.autenticacao.Usuario.Domain.Entidade;
 import com.rafael.autenticacao.Usuario.Domain.Role;
 import com.rafael.autenticacao.Usuario.Service.UsuarioService;
@@ -13,12 +15,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -67,13 +74,10 @@ public class AuthBySessionController {
     public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
         csrfTokenRepository.saveToken(null,request, response);
 
-        SecurityContextHolder.clearContext();
+        var emptyContext = SecurityContextHolder.createEmptyContext();
 
-        var session = request.getSession(false);
-
-        if(session != null) {
-            session.invalidate();
-        }
+        SecurityContextHolder.setContext(emptyContext);
+        securityContextRepository.saveContext(emptyContext, request, response);
 
         return  ResponseEntity.ok("Logout feito");
     }
@@ -91,6 +95,29 @@ public class AuthBySessionController {
     @GetMapping("/session/csrf")
     public CsrfToken csrf(CsrfToken csrfToken) {
         return csrfToken;
+    }
+
+    @GetMapping("/session/sobre")
+    public ResponseEntity<SessionUserResponseDTO> authenticationDetails(
+            @AuthenticationPrincipal UsuarioDetails userDetails,
+            Authentication authentication
+    ) {
+        List<String> authorities = authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(authority -> authority.startsWith("ROLE_"))
+                .sorted()
+                .toList();
+
+        var response = new SessionUserResponseDTO(
+                userDetails.getId(),
+                userDetails.getUsername(),
+                userDetails.getName(),
+                userDetails.getEmail(),
+                authorities
+        );
+
+        return ResponseEntity.ok(response);
     }
 
 }

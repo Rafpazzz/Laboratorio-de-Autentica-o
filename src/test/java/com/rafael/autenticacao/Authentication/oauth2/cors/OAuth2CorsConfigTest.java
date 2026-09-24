@@ -1,4 +1,4 @@
-package com.rafael.autenticacao.Authentication.jwt.cors;
+package com.rafael.autenticacao.Authentication.oauth2.cors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import org.springframework.web.cors.DefaultCorsProcessor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class JwtCorsConfigTest {
+class OAuth2CorsConfigTest {
 
     private static final String ALLOWED_ORIGIN = "http://localhost:5173";
 
@@ -24,16 +24,16 @@ class JwtCorsConfigTest {
 
     @BeforeEach
     void setUp() {
-        configurationSource = new JwtCorsConfig()
-                .jwtCorsConfigurationSource(ALLOWED_ORIGIN);
+        configurationSource = new OAuth2CorsConfig()
+                .oauth2CorsConfigurationSource(ALLOWED_ORIGIN);
     }
 
     @ParameterizedTest
     @CsvSource({
-            "/auth/jwt/login, POST",
-            "/auth/jwt/sobre, GET"
+            "/auth/oauth2/sobre, GET",
+            "/auth/oauth2/logout, POST"
     })
-    void preflightShouldAllowConfiguredOriginAndJwtHeaders(
+    void preflightShouldAllowConfiguredOriginAndRequiredHeaders(
             String requestUri,
             String requestedMethod
     ) throws Exception {
@@ -42,7 +42,7 @@ class JwtCorsConfigTest {
                 ALLOWED_ORIGIN,
                 requestedMethod
         );
-        MockHttpServletResponse response = new MockHttpServletResponse();
+        var response = new MockHttpServletResponse();
 
         boolean processed = corsProcessor.processRequest(
                 corsConfiguration(request),
@@ -60,19 +60,19 @@ class JwtCorsConfigTest {
                 .contains(requestedMethod);
         assertThat(response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS))
                 .containsIgnoringCase(HttpHeaders.CONTENT_TYPE)
-                .containsIgnoringCase(HttpHeaders.AUTHORIZATION)
-                .containsIgnoringCase("X-JWT-XSRF-TOKEN");
-        assertThat(response.getHeader(HttpHeaders.ACCESS_CONTROL_MAX_AGE)).isEqualTo("3600");
+                .containsIgnoringCase("X-CSRF-TOKEN");
+        assertThat(response.getHeader(HttpHeaders.ACCESS_CONTROL_MAX_AGE))
+                .isEqualTo("3600");
     }
 
     @Test
     void preflightShouldRejectOriginThatIsNotConfigured() throws Exception {
         MockHttpServletRequest request = preflightRequest(
-                "/auth/jwt/sobre",
+                "/auth/oauth2/sobre",
                 "https://origem-nao-permitida.example",
                 "GET"
         );
-        MockHttpServletResponse response = new MockHttpServletResponse();
+        var response = new MockHttpServletResponse();
 
         boolean processed = corsProcessor.processRequest(
                 corsConfiguration(request),
@@ -86,11 +86,8 @@ class JwtCorsConfigTest {
     }
 
     @Test
-    void configurationShouldNotApplyOutsideJwtRoutes() {
-        MockHttpServletRequest request = new MockHttpServletRequest(
-                "OPTIONS",
-                "/auth/session/login"
-        );
+    void configurationShouldNotApplyOutsideOAuth2Routes() {
+        var request = new MockHttpServletRequest("OPTIONS", "/auth/session/login");
 
         assertThat(configurationSource.getCorsConfiguration(request)).isNull();
     }
@@ -100,12 +97,12 @@ class JwtCorsConfigTest {
             String origin,
             String requestedMethod
     ) {
-        MockHttpServletRequest request = new MockHttpServletRequest("OPTIONS", requestUri);
+        var request = new MockHttpServletRequest("OPTIONS", requestUri);
         request.addHeader(HttpHeaders.ORIGIN, origin);
         request.addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, requestedMethod);
         request.addHeader(
                 HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS,
-                "Content-Type, Authorization, X-JWT-XSRF-TOKEN"
+                "Content-Type, X-CSRF-TOKEN"
         );
         return request;
     }

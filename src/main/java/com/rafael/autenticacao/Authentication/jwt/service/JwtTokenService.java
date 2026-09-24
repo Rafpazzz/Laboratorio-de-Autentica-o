@@ -41,6 +41,7 @@ public class JwtTokenService {
                 .subject(usuario.getId().toString())
                 .audience(List.of(JwtSecurityConstants.AUDIENCE))
                 .claim("email", usuario.getUsername())
+                .claim("name", usuario.getName())
                 .issuedAt(issuedAt)
                 .expiresAt(issuedAt.plus(ACCESS_TOKEN_TTL))
                 .id(UUID.randomUUID().toString())

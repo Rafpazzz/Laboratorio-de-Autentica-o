@@ -12,6 +12,9 @@ import com.rafael.autenticacao.Authentication.jwt.service.JwtTokenService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.security.oauth2.client.autoconfigure.servlet.OAuth2ClientWebSecurityAutoConfiguration;
+import org.springframework.boot.security.saml2.autoconfigure.Saml2RelyingPartyAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -49,7 +52,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = AuthByJwtController.class)
+@WebMvcTest(
+        controllers = AuthByJwtController.class,
+        excludeAutoConfiguration = {
+                OAuth2ClientAutoConfiguration.class,
+                OAuth2ClientWebSecurityAutoConfiguration.class,
+                Saml2RelyingPartyAutoConfiguration.class
+        }
+)
 @Import({
         SecurityConfigByJwt.class,
         JwtKeyConfig.class,
@@ -273,7 +283,7 @@ class JwtSecurityFilterChainTest {
 
     @Test
     void preflightShouldAllowJwtOriginAndAuthorizationHeaderWithoutAccessToken() throws Exception {
-        mockMvc.perform(options("/auth/jwt/me")
+        mockMvc.perform(options("/auth/jwt/sobre")
                         .header(HttpHeaders.ORIGIN, "http://localhost:5173")
                         .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
                         .header(
@@ -305,14 +315,14 @@ class JwtSecurityFilterChainTest {
 
     @Test
     void protectedRouteShouldRejectRequestWithoutAccessToken() throws Exception {
-        var result = mockMvc.perform(get("/auth/jwt/me"))
+        var result = mockMvc.perform(get("/auth/jwt/sobre"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, startsWith("Bearer")))
                 .andExpect(jsonPath("$.title").value("Unauthorized"))
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.detail").value("Token de acesso ausente ou invalido"))
-                .andExpect(jsonPath("$.instance").value("/auth/jwt/me"))
+                .andExpect(jsonPath("$.instance").value("/auth/jwt/sobre"))
                 .andReturn();
 
         assertThat(result.getRequest().getSession(false)).isNull();
@@ -328,10 +338,14 @@ class JwtSecurityFilterChainTest {
                 Instant.now().plus(15, ChronoUnit.MINUTES)
         );
 
-        var result = mockMvc.perform(get("/auth/jwt/me")
+        var result = mockMvc.perform(get("/auth/jwt/sobre")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(content().string(subject))
+                .andExpect(jsonPath("$.subject").value(subject))
+                .andExpect(jsonPath("$.username").value("rafael@email.com"))
+                .andExpect(jsonPath("$.name").value("Rafael"))
+                .andExpect(jsonPath("$.email").value("rafael@email.com"))
+                .andExpect(jsonPath("$.authorities[0]").value("ROLE_USER"))
                 .andReturn();
 
         assertThat(result.getRequest().getSession(false)).isNull();
@@ -349,7 +363,7 @@ class JwtSecurityFilterChainTest {
                 Instant.now().plus(15, ChronoUnit.MINUTES)
         );
 
-        mockMvc.perform(get("/auth/jwt/me")
+        mockMvc.perform(get("/auth/jwt/sobre")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -357,7 +371,7 @@ class JwtSecurityFilterChainTest {
                 .andExpect(jsonPath("$.title").value("Unauthorized"))
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.detail").value("Token de acesso ausente ou invalido"))
-                .andExpect(jsonPath("$.instance").value("/auth/jwt/me"));
+                .andExpect(jsonPath("$.instance").value("/auth/jwt/sobre"));
     }
 
     @Test
@@ -370,7 +384,7 @@ class JwtSecurityFilterChainTest {
                 issuedAt.plus(15, ChronoUnit.MINUTES)
         );
 
-        mockMvc.perform(get("/auth/jwt/me")
+        mockMvc.perform(get("/auth/jwt/sobre")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -378,57 +392,7 @@ class JwtSecurityFilterChainTest {
                 .andExpect(jsonPath("$.title").value("Unauthorized"))
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.detail").value("Token de acesso ausente ou invalido"))
-                .andExpect(jsonPath("$.instance").value("/auth/jwt/me"));
-    }
-
-    @Test
-    void adminRouteShouldRejectRequestWithoutAccessToken() throws Exception {
-        mockMvc.perform(get("/auth/jwt/admin"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, startsWith("Bearer")))
-                .andExpect(jsonPath("$.title").value("Unauthorized"))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.detail").value("Token de acesso ausente ou invalido"))
-                .andExpect(jsonPath("$.instance").value("/auth/jwt/admin"));
-    }
-
-    @Test
-    void adminRouteShouldRejectAuthenticatedUserWithoutAdminRole() throws Exception {
-        String accessToken = validAccessTokenWithAuthorities("ROLE_USER");
-
-        mockMvc.perform(get("/auth/jwt/admin")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, startsWith("Bearer")))
-                .andExpect(jsonPath("$.title").value("Forbidden"))
-                .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.detail")
-                        .value("Permissão insuficiente para acessar esse recurso"))
-                .andExpect(jsonPath("$.instance").value("/auth/jwt/admin"));
-    }
-
-    @Test
-    void adminRouteShouldAcceptAccessTokenWithAdminRole() throws Exception {
-        String accessToken = validAccessTokenWithAuthorities("ROLE_ADMIN");
-
-        mockMvc.perform(get("/auth/jwt/admin")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Acesso administrativo autorizado"));
-    }
-
-    private String validAccessTokenWithAuthorities(String... authorities) {
-        Instant issuedAt = Instant.now();
-
-        return encodeToken(
-                jwtEncoder,
-                UUID.randomUUID().toString(),
-                issuedAt,
-                issuedAt.plus(15, ChronoUnit.MINUTES),
-                List.of(authorities)
-        );
+                .andExpect(jsonPath("$.instance").value("/auth/jwt/sobre"));
     }
 
     private String encodeToken(
@@ -457,6 +421,8 @@ class JwtSecurityFilterChainTest {
                 .issuer(JwtSecurityConstants.ISSUER)
                 .subject(subject)
                 .audience(List.of(JwtSecurityConstants.AUDIENCE))
+                .claim("email", "rafael@email.com")
+                .claim("name", "Rafael")
                 .issuedAt(issuedAt)
                 .expiresAt(expiresAt)
                 .claim("authorities", authorities)

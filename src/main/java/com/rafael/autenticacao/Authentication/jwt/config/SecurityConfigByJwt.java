@@ -47,7 +47,6 @@ public class SecurityConfigByJwt {
                         .requestMatchers(HttpMethod.POST, "/auth/jwt/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/jwt/logout").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/jwt/refresh").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/auth/jwt/admin").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/auth/jwt/csrf").permitAll()
                         .anyRequest().authenticated()
                 )

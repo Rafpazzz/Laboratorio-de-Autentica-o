@@ -45,6 +45,7 @@ class JwtTokenServiceTest {
         assertThat(decodedToken.getSubject()).isEqualTo(userId.toString());
         assertThat(decodedToken.getAudience()).containsExactly("autenticacao-api");
         assertThat(decodedToken.getClaimAsString("email")).isEqualTo("rafael@email.com");
+        assertThat(decodedToken.getClaimAsString("name")).isEqualTo("Rafael");
         assertThat(decodedToken.getIssuer().toString())
                 .isEqualTo("https://autenticacao-lab.local");
     }

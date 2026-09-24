@@ -134,7 +134,7 @@ class AuthBySessionControllerTest {
     }
 
     @Test
-    void logoutShouldClearSecurityContextAndInvalidateCurrentSession() {
+    void logoutShouldClearOnlySessionAuthenticationContext() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockHttpSession session = (MockHttpSession) request.getSession(true);
@@ -145,7 +145,8 @@ class AuthBySessionControllerTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isEqualTo("Logout feito");
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        assertThat(session.isInvalid()).isTrue();
+        assertThat(session.isInvalid()).isFalse();
+        verify(securityContextRepository).saveContext(any(), any(), any());
         verify(csrfTokenRepository).saveToken(null, request, response);
     }
 

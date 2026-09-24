@@ -80,13 +80,23 @@ Valida email e senha. Quando as credenciais sao validas, cria ou atualiza a sess
 
 O login tambem esta sujeito a CSRF. Proteger o login evita ataques em que uma vitima e autenticada involuntariamente na conta controlada por outra pessoa.
 
+### Dados da autenticacao
+
+```text
+GET /auth/session/sobre
+```
+
+Retorna os dados selecionados do usuario e suas roles para a pagina do frontend
+dedicada ao login por sessao.
+
 ### Logout
 
 ```text
 POST /auth/session/logout
 ```
 
-Exige autenticacao, token CSRF e invalida a sessao atual.
+Exige autenticacao e token CSRF. Remove somente o contexto do login por sessao,
+sem encerrar os contextos OAuth2 ou SAML mantidos no mesmo navegador.
 
 ### Emissao de token CSRF
 
@@ -864,24 +874,20 @@ remover XSRF-TOKEN
         |
 limpar SecurityContextHolder
         |
-obter sessao existente sem criar outra
-        |
-invalidar HttpSession
+salvar um contexto vazio no repositorio da modalidade
 ```
 
 ### Por que limpar o SecurityContextHolder
 
 Remove a autenticacao da requisicao atual.
 
-### Por que invalidar a HttpSession
+### Por que remover o contexto persistido
 
-Remove o contexto persistido e faz o `JSESSIONID` anterior deixar de autenticar.
+O repositorio usa a chave `SPRING_SECURITY_CONTEXT_SESSION`. Salvar um contexto
+vazio remove somente essa autenticacao da `HttpSession`. Os contextos OAuth2 e
+SAML usam chaves diferentes e permanecem independentes.
 
 Limpar somente o holder nao seria suficiente, porque a proxima requisicao poderia restaurar o contexto salvo na sessao.
-
-### Por que nao criar sessao no logout
-
-Consultar a sessao com comportamento equivalente a `getSession(false)` evita criar uma sessao nova apenas para encerra-la.
 
 ### CSRF no logout
 
@@ -1094,7 +1100,7 @@ Ainda devem ser adicionados testes de ambiente para:
 - [x] Credenciais habilitadas apenas para origem conhecida.
 - [x] `401` e `403` tratados separadamente.
 - [x] Erros de seguranca retornados como `ProblemDetail`.
-- [x] Logout invalida a sessao.
+- [x] Logout remove somente o contexto da modalidade.
 - [x] Protecao contra session fixation considerada no login customizado.
 - [ ] Politica explicita de cookie para producao.
 - [ ] Timeout revisado.

@@ -64,7 +64,10 @@ public class SecurityConfigBySession {
 
     @Bean
     public SecurityContextRepository sessionSecurityContextRepository() {
-        return new HttpSessionSecurityContextRepository();
+        var repository = new HttpSessionSecurityContextRepository();
+        repository.setSpringSecurityContextKey("SPRING_SECURITY_CONTEXT_SESSION");
+
+        return repository;
     }
 
     @Bean("sessionCsrfTokenRepository")
