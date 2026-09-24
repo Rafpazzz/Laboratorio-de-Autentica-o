@@ -56,3 +56,10 @@ de recriar o realm.
 
 O import de inicializacao e adequado ao laboratorio. Ele nao substitui backup,
 restore, versionamento de migracoes nem uma instalacao de producao do Keycloak.
+
+## Referencias oficiais
+
+- Importacao e exportacao de realms:
+  <https://www.keycloak.org/server/importExport>
+- Execucao e importacao em containers:
+  <https://www.keycloak.org/server/containers>
