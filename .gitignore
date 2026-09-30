@@ -34,3 +34,8 @@ build/
 
 .env
 .local/
+
+
+##Front End
+
+front-end/node_modules
